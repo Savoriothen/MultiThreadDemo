@@ -1,29 +1,27 @@
 using System.Collections.Concurrent;
-using Serilog;
 
 namespace MultiThread.Core;
 
 public static class FileOperations
 {
-    public static byte[] ReadBytes(string sourceFile,int readableByte)
+    public static byte[] ReadBytes(string sourceFile,int readableBytesNumber)
     {
-        Log.Logger = new LoggerConfiguration()
-        .WriteTo.File("log-.txt", rollingInterval: RollingInterval.Day)
-            .CreateLogger();
-        byte[] fByte = new byte[readableByte];                                                             
-        try
+        if (!File.Exists(sourceFile))
         {
-            using (var fr = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read)) 
-            using (var ms=new MemoryStream(fByte))    
+            throw new FileNotFoundException(@"The specified file could not be found or does not exist.: "+sourceFile);
+        }
+        using (FileStream fs = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            readableBytesNumber= (int)Math.Min(readableBytesNumber, fs.Length); 
+            byte[] readBytes = new byte[readableBytesNumber];
+            int numberOfReadBytes =fs.Read(readBytes, 0, readableBytesNumber);
+            if (numberOfReadBytes < readableBytesNumber)
             {
-                fr.CopyTo(ms, readableByte); 
-            }               
+
+                Array.Resize(ref readBytes, numberOfReadBytes);
+            }
+            return readBytes; 
         }
-        catch (Exception ex)
-        {
-             Log.Logger.Error(ex.Message);                            
-        }
-        return fByte;
     }
     public static void GetFileNames(string upperDirectory, ref BlockingCollection<string> filenames)
     {

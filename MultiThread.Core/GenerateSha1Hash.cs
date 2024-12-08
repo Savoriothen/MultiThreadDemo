@@ -18,20 +18,28 @@ public static class GenerateSha1Hash
     public static void GenerateSha1HashToDictionaryFromFileName(string fileName,
         ref ConcurrentDictionary<string, List<string>?> hashesWithFilenames,int taskId)
     {
-        var data=FileOperations.ReadBytes(fileName,128);
-        var hash=CreateSha1HashFrom(data);
-        if (hashesWithFilenames.TryGetValue(BitConverter.ToString(hash).Replace("-", "").ToLower(),
-                out List<string>? filenames))
+        try
         {
-            if(filenames==null)
-                filenames = new List<string>();
-            filenames.Add(Path.GetFileName(fileName)+"   "+taskId);
+            var data=FileOperations.ReadBytes(fileName,128);
+            var hash=CreateSha1HashFrom(data);
+            if (hashesWithFilenames.TryGetValue(BitConverter.ToString(hash).Replace("-", "").ToLower(),
+                    out List<string>? filenames))
+            {
+                if(filenames==null)
+                    filenames = new List<string>();
+                filenames.Add(Path.GetFileName(fileName)+"   "+taskId);
+            }
+            else
+            {
+                hashesWithFilenames.TryAdd(BitConverter.ToString(hash).Replace("-", "").ToLower(),
+                    new List<string>() { Path.GetFileName(fileName)+"   "+taskId });
+            }
         }
-        else
+        catch (Exception ex)
         {
-            hashesWithFilenames.TryAdd(BitConverter.ToString(hash).Replace("-", "").ToLower(),
-                new List<string>() { Path.GetFileName(fileName)+"   "+taskId });
+            MtdLogger.LogError(ex.Message);
         }
+
     }
     public static string ResultStringCreator(ref ConcurrentDictionary<string, List<string>?> hashesWithFilenames)
     {

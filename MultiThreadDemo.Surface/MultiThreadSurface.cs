@@ -14,12 +14,12 @@ public partial class MultiThreadSurface : Form
     private decimal _threadCount=1;
     private readonly List<Task> _tasks;
     private CancellationTokenSource? _cancellationTokenSource;
-    bool _processStopped;
     #endregion
     
     #region Constructor
     public MultiThreadSurface()
     {
+        MtdLogger.InitLogger();
         _tasks = new List<Task>();
         InitializeComponent();
         _cancellationTokenSource = null;
@@ -46,10 +46,12 @@ public partial class MultiThreadSurface : Form
         {
             return;
         }
-
+        MtdLogger.LogInfo("Starting tasks...");
         BeforeStart();
+#if DEBUG   
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
+#endif
         try
         {
             
@@ -64,6 +66,7 @@ public partial class MultiThreadSurface : Form
                 _tasks.Add(Task.Run(() =>
                 {
                     if (_cancellationTokenSource != null) ProcessData(taskId, _cancellationTokenSource.Token);
+                    MtdLogger.LogInfo(@"Start "+ taskId+ " process task.");
                 }));
             }
             _tasks.Add(producerTask);
@@ -74,11 +77,13 @@ public partial class MultiThreadSurface : Form
         {
             _cancellationTokenSource = null;
         }
-        
+#if DEBUG
         stopwatch.Stop();
         _elapsedMillisecond = stopwatch.ElapsedMilliseconds;
         lblElapsedTime.Text = $@"Elapsed time:{_elapsedMillisecond.ToString()} ms";
+#endif
         tbResult.Text = GenerateSha1Hash.ResultStringCreator(ref _hashesWithFilenames);
+        MtdLogger.LogInfo("Tasks closed");
         _tasks.Clear();
         SetControls();
 
@@ -113,6 +118,7 @@ public partial class MultiThreadSurface : Form
     #region BusinessLogic
     private void ReadData(CancellationToken token)
     {
+        
         try
         {
             while (!_filenames.IsAddingCompleted && !token.IsCancellationRequested)
@@ -121,13 +127,13 @@ public partial class MultiThreadSurface : Form
                 _filenames.CompleteAdding();
             }
         }
-        catch (OperationCanceledException)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            if (!_processStopped)
-            {
-                _processStopped = true;
-                MessageBox.Show(@"Processing stops");
-            }
+            MtdLogger.LogError(@"Exception in read data task: "+ex.Message);
+        }
+        catch (OperationCanceledException ex)
+        {
+            MtdLogger.LogWarning(@"User processing stops throw an exception: "+ex.Message);
         }
         finally
         {
@@ -143,13 +149,13 @@ public partial class MultiThreadSurface : Form
                 GenerateSha1Hash.GenerateSha1HashToDictionaryFromFileName(filename,ref _hashesWithFilenames,taskId);
             }
         }
-        catch (OperationCanceledException)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            if (!_processStopped)
-            {
-                _processStopped = true;
-                MessageBox.Show(@"Processing stops");
-            }
+            MtdLogger.LogError(@"Exception in the "+taskId+" process data task: "+ex.Message);
+        }
+        catch (OperationCanceledException ex)
+        {
+            MtdLogger.LogWarning(@"User processing stops throw an exception in "+taskId+" process data task: "+ex.Message);
         }
     }  
     #endregion

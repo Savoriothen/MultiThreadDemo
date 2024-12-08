@@ -70,7 +70,7 @@ partial class MultiThreadSurface
         // btnStart
         // 
         btnStart.Enabled = false;
-        btnStart.Location = new System.Drawing.Point(280, 39);
+        btnStart.Location = new System.Drawing.Point(280, 42);
         btnStart.Name = "btnStart";
         btnStart.Size = new System.Drawing.Size(75, 23);
         btnStart.TabIndex = 3;
@@ -81,7 +81,7 @@ partial class MultiThreadSurface
         // btnStop
         // 
         btnStop.Enabled = false;
-        btnStop.Location = new System.Drawing.Point(361, 38);
+        btnStop.Location = new System.Drawing.Point(361, 42);
         btnStop.Name = "btnStop";
         btnStop.Size = new System.Drawing.Size(75, 23);
         btnStop.TabIndex = 4;
@@ -99,8 +99,8 @@ partial class MultiThreadSurface
         // 
         // nudThreadNo
         // 
-        nudThreadNo.Location = new System.Drawing.Point(141, 39);
-        nudThreadNo.Maximum = new decimal(new int[] { 32, 0, 0, 0 });
+        nudThreadNo.Location = new System.Drawing.Point(141, 42);
+        nudThreadNo.Maximum = new decimal(new int[] { 64, 0, 0, 0 });
         nudThreadNo.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
         nudThreadNo.Name = "nudThreadNo";
         nudThreadNo.Size = new System.Drawing.Size(120, 23);
